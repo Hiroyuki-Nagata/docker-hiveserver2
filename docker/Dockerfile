@@ -1,35 +1,66 @@
-FROM ubuntu:14.04
+#
+# how i install bigtop 1.1.0 on ubuntu 16.04
+# https://gist.github.com/tonycox/322e8ffa584123f1b498c705cf5d972f
+#
+FROM ubuntu:16.04
 
-RUN sudo apt-get -y install wget
-RUN wget http://archive.cloudera.com/cdh5/one-click-install/precise/amd64/cdh5-repository_1.0_all.deb
-RUN sudo dpkg -i cdh5-repository_1.0_all.deb
-RUN sudo apt-get update
-RUN sudo apt-get -y install hive-server2 
+RUN apt-get -y update
+RUN apt-get -y upgrade
 
-RUN wget http://ftp.jaist.ac.jp/pub/apache/zookeeper/zookeeper-3.4.6/zookeeper-3.4.6.tar.gz && \
-    tar xfz zookeeper-3.4.6.tar.gz && \
-    cd zookeeper-3.4.6  && \
-    cp zookeeper-3.4.6.jar /usr/lib/hive/lib/
+# install java (homedir - /usr/lib/jvm/java-8-oracle/)
+RUN apt-get install -y apt-file
+RUN add-apt-repository ppa:webupd8team/java
+RUN apt-get -y update
+RUN apt-get -y install oracle-java8-installer
 
-ENV DEBIAN_FRONTEND noninteractive
-RUN apt-get install -y mysql-server
-RUN apt-get install libmysql-java && \
-    cp /usr/share/java/mysql-connector-java.jar /usr/lib/hive/lib/
+# or use this to set as default -> sudo apt install oracle-java8-set-default
 
-ADD create_database.sql /tmp/ 
-RUN /etc/init.d/mysql start && \
-    sleep 3 && \
-    mysql -u root < /tmp/create_database.sql
+# install maven (homedir - /usr/share/maven)
+RUN apt-get -y install maven
 
-ADD hive-site.xml /etc/hive/conf/
-RUN mkdir -p /user/hive/warehouse/ && \
-    chown -R hive /user/hive
+# set env
+RUN echo "export JAVA_HOME=/usr/lib/jvm/java-8-oracle/" >> /etc/bash.bashrc
+RUN echo "export M2_HOME=/usr/share/maven" >> /etc/bash.bashrc
+RUN echo "export PATH=$M2_HOME/bin:$JAVA_HOME/bin:$PATH" >> /etc/bash.bashrc
+RUN source /etc/bash.bashrc
+RUN mvn -v
 
-RUN apt-get -y install python-setuptools
-RUN easy_install supervisor
-RUN mkdir -p /var/log/supervisor
-ADD supervisord.conf /etc/supervisord.conf
+# Install the Apache Bigtop GPG key
+RUN wget -O- http://archive.apache.org/dist/bigtop/bigtop-1.2.0/repos/GPG-KEY-bigtop | sudo apt-key add -
 
-EXPOSE 10000
+# Make sure to grab the repo file:
+RUN wget -O /etc/apt/sources.list.d/bigtop-1.2.0.list http://archive.apache.org/dist/bigtop/bigtop-1.2.0/repos/trusty/bigtop.list
 
-CMD ["supervisord", "-n"]
+# Update the apt cache
+RUN apt-get -y update
+
+# Install bigtop-utils
+RUN apt-get -y install bigtop-utils
+
+# Install the full Hadoop stack (or parts of it)
+RUN apt-get -y install hadoop\* flume-* oozie\* hive\*
+
+## Running
+
+# Format the namenode
+RUN /etc/init.d/hadoop-hdfs-namenode init
+
+# Start the necessary Hadoop services
+RUN for i in hadoop-hdfs-namenode hadoop-hdfs-datanode ; do sudo service $i start ; done
+RUN service hadoop-yarn-resourcemanager start
+RUN service hadoop-yarn-nodemanager start
+
+# Check hadoop fs
+RUN sudo hdfs dfs -ls /
+
+# Run hive
+RUN hadoop fs -mkdir /tmp
+RUN hadoop fs -mkdir /user/hive/warehouse
+RUN hadoop -chmod g+x /tmp
+RUN hadoop -chmod g+x /user/hive/warehouse
+
+# if dirs have not been created on local fs
+RUN mkdir /var/run/hive
+RUN mkdir /var/lock/subsys
+
+RUN /etc/init.d/hive-server start

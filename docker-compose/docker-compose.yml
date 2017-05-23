@@ -3,7 +3,7 @@ zk:
   ports:
     - "2181:2181"
 hiveserver2:
-  image: letusfly85/hiveserver2:latest
+  image: hiroyuking/hiveserver2:latest
   links:
     - "zk:zookeeper"
   ports:

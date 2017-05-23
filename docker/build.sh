@@ -1,1 +1,1 @@
-docker build -t letusfly85/hiveserver2 ./
+docker build -t hiroyuking/hiveserver2 ./
