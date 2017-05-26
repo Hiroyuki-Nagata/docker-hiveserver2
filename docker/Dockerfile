@@ -11,17 +11,10 @@ RUN apt-get -y upgrade
 RUN apt-get install -y software-properties-common python-software-properties
 RUN add-apt-repository ppa:webupd8team/java
 RUN apt-get -y update
-RUN apt-get -y install openjdk-8-jdk
-
-# or use this to set as default -> sudo apt install oracle-java8-set-default
-# install maven (homedir - /usr/share/maven)
-RUN apt-get -y install maven
+RUN apt-get -y install openjdk-8-jdk maven wget
 
 # Run maven test
 RUN mvn -v
-
-# Install wget
-RUN apt-get -y install wget
 
 # Install the Apache Bigtop GPG key
 RUN wget -O- http://archive.apache.org/dist/bigtop/bigtop-1.2.0/repos/GPG-KEY-bigtop | apt-key add -
@@ -36,29 +29,17 @@ RUN apt-get -y update
 RUN apt-get -y install bigtop-utils
 
 # Install the full Hadoop stack (or parts of it)
-RUN apt-get -y install hadoop\* flume-* oozie\* hive\*
+# You can add flume-* oozie\*
+RUN apt-get -y install hadoop\* hive\*
 
-## Running
-
-# Format the namenode
+# Format the namenode for the first time
 RUN /etc/init.d/hadoop-hdfs-namenode init
 
-# Start the necessary Hadoop services
-RUN for i in hadoop-hdfs-namenode hadoop-hdfs-datanode ; do sudo service $i start ; done
-RUN service hadoop-yarn-resourcemanager start
-RUN service hadoop-yarn-nodemanager start
-
-# Check hadoop fs
-RUN sudo hdfs dfs -ls /
-
-# Run hive
-RUN hadoop fs -mkdir /tmp
-RUN hadoop fs -mkdir /user/hive/warehouse
-RUN hadoop -chmod g+x /tmp
-RUN hadoop -chmod g+x /user/hive/warehouse
-
 # if dirs have not been created on local fs
-RUN mkdir /var/run/hive
-RUN mkdir /var/lock/subsys
+RUN mkdir -p /var/run/hive
+RUN mkdir -p /var/lock/subsys
 
-RUN /etc/init.d/hive-server start
+## Running
+add start.sh /start.sh
+
+CMD ["bash", "/start.sh"]
