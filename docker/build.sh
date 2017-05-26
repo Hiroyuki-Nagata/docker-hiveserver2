@@ -1,1 +1,3 @@
-docker build -t hiroyuking/hiveserver2 ./
+#!/bin/bash
+
+docker build -t hiroyuking/hiveserver2:latest ./

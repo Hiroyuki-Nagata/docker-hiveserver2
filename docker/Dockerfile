@@ -8,28 +8,26 @@ RUN apt-get -y update
 RUN apt-get -y upgrade
 
 # install java (homedir - /usr/lib/jvm/java-8-oracle/)
-RUN apt-get install -y apt-file
+RUN apt-get install -y software-properties-common python-software-properties
 RUN add-apt-repository ppa:webupd8team/java
 RUN apt-get -y update
-RUN apt-get -y install oracle-java8-installer
+RUN apt-get -y install openjdk-8-jdk
 
 # or use this to set as default -> sudo apt install oracle-java8-set-default
-
 # install maven (homedir - /usr/share/maven)
 RUN apt-get -y install maven
 
-# set env
-RUN echo "export JAVA_HOME=/usr/lib/jvm/java-8-oracle/" >> /etc/bash.bashrc
-RUN echo "export M2_HOME=/usr/share/maven" >> /etc/bash.bashrc
-RUN echo "export PATH=$M2_HOME/bin:$JAVA_HOME/bin:$PATH" >> /etc/bash.bashrc
-RUN source /etc/bash.bashrc
+# Run maven test
 RUN mvn -v
 
+# Install wget
+RUN apt-get -y install wget
+
 # Install the Apache Bigtop GPG key
-RUN wget -O- http://archive.apache.org/dist/bigtop/bigtop-1.2.0/repos/GPG-KEY-bigtop | sudo apt-key add -
+RUN wget -O- http://archive.apache.org/dist/bigtop/bigtop-1.2.0/repos/GPG-KEY-bigtop | apt-key add -
 
 # Make sure to grab the repo file:
-RUN wget -O /etc/apt/sources.list.d/bigtop-1.2.0.list http://archive.apache.org/dist/bigtop/bigtop-1.2.0/repos/trusty/bigtop.list
+RUN wget -O /etc/apt/sources.list.d/bigtop-1.2.0.list http://archive.apache.org/dist/bigtop/bigtop-1.2.0/repos/ubuntu16.04/bigtop.list
 
 # Update the apt cache
 RUN apt-get -y update
