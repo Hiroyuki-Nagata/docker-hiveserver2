@@ -39,8 +39,11 @@ RUN /etc/init.d/hadoop-hdfs-namenode init
 RUN mkdir -p /var/run/hive
 RUN mkdir -p /var/lock/subsys
 
-# Get supervisor
-RUN apt-get install -y supervisor
+# Get supervisor, sudo
+RUN apt-get install -y supervisor sudo libpam-modules-bin
+
+# Prepare "hadoop" user with "hdfs" group
+RUN mkhomedir_helper hdfs
 
 ## Running
 ADD supervisord.conf /etc/supervisord.conf
