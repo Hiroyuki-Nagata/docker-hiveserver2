@@ -1,5 +1,5 @@
 hiveserver2:
-  image: hiroyuking/hiveserver2:latest
+  image: hiroyuking/docker-hiveserver2:latest
   tty: true
   ports:
     - "10000:10000"
