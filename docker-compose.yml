@@ -1,5 +1,7 @@
 hiveserver2:
   image: hiroyuking/docker-hiveserver2:latest
+  environment:
+    COMPOSE_HTTP_TIMEOUT: 200
   tty: true
   ports:
     - "10000:10000"

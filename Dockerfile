@@ -39,7 +39,9 @@ RUN /etc/init.d/hadoop-hdfs-namenode init
 RUN mkdir -p /var/run/hive
 RUN mkdir -p /var/lock/subsys
 
-## Running
-add start.sh /start.sh
+# Get supervisor
+RUN apt-get install -y supervisor
 
-CMD ["bash", "/start.sh"]
+## Running
+ADD supervisord.conf /etc/supervisord.conf
+CMD ["/usr/bin/supervisord"]
