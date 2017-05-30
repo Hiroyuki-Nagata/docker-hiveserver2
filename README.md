@@ -29,6 +29,7 @@ $ sudo docker exec -it dockerhiveserver2_hiveserver2_1 /bin/bash
 ```
 # su - hdfs
 $ hadoop fs -mkdir /tmp
+$ hadoop fs -mkdir -p /user/hdfs/
 $ hadoop fs -mkdir -p /user/hive/warehouse
 $ hadoop -chmod g+x /tmp
 $ hadoop -chmod g+x /user/hive/warehouse
